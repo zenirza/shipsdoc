@@ -62,7 +62,7 @@
   .crumbs { color: var(--muted); font-size: .85rem; margin-bottom: 4px; }
   .crumbs a:hover { color: var(--primary); }
   .tpl-pick { display: flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--muted); }
-  .tpl-pick select { width: auto; min-width: 140px; }
+  .tpl-pick select { width: auto; min-width: 140px; margin-top: 0; }
 
   /* Tabs (mobile) */
   .tabs { display: flex; gap: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin: 8px 0 16px; position: sticky; top: 68px; z-index: 20; }
@@ -111,6 +111,8 @@
   .rm { appearance: none; background: none; border: 0; color: var(--danger); font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; padding: 6px 8px; min-height: 36px; }
   .rm:disabled { opacity: .35; cursor: not-allowed; }
 
+  .summary { margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); }
+
   .btn {
     appearance: none; cursor: pointer; font: inherit; font-weight: 600; font-size: .95rem;
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -154,9 +156,9 @@
   .inv-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px; }
   .inv-parties h6 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; }
   .inv-parties p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
-  .inv-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 24px; margin-bottom: 24px; }
+  .inv-meta { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 24px; margin-bottom: 24px; }
   .inv-meta span { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; }
-  .inv-meta b { font-weight: 600; }
+  .inv-meta b { font-weight: 600; overflow-wrap: anywhere; }
   table.items { width: 100%; border-collapse: collapse; table-layout: fixed; }
   .items th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; padding: 8px 10px; }
   .items td { padding: 10px; border-bottom: 1px solid #e5e7eb; vertical-align: top; overflow-wrap: anywhere; }
@@ -166,14 +168,19 @@
   .inv-total { margin-left: auto; width: 290px; margin-top: 16px; }
   .inv-total div { display: flex; justify-content: space-between; padding: 4px 0; }
   .inv-total .grand { font-weight: 700; font-size: 16px; border-top: 2px solid currentColor; margin-top: 6px; padding-top: 8px; }
+  .inv-total .rule { display: block; height: 0; padding: 0; margin-top: 4px; border-top: 5px solid #111827; }
+  .inv-comments { margin-top: 28px; }
+  .inv-comments h6 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; }
+  .inv-comments p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
   .inv-foot { margin-top: auto; padding-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; font-size: 11px; color: #6b7280; }
   .sign { width: 200px; text-align: center; border-top: 1px solid #9ca3af; padding-top: 6px; flex: none; }
 
   /* Template: Classic */
-  .t-classic { font-family: Georgia, "Times New Roman", serif; }
+  .t-classic { font-family: Trebuchet MS, "Times New Roman", serif; }
   .t-classic .inv-head { border-bottom: 3px double #111; padding-bottom: 16px; align-items: center; }
   .t-classic .inv-title h1 { text-transform: uppercase; }
   .t-classic .items th { border-top: 1px solid #111; border-bottom: 1px solid #111; }
+  .t-classic .inv-total .rule { border-top-color: #111; }
 
   /* Template: Modern */
   .t-modern { padding-top: 0; }
@@ -182,6 +189,7 @@
   .t-modern .inv-logo { background: #fff; padding: 6px 10px; border-radius: 6px; }
   .t-modern .items th { background: #eff6ff; color: #1d4ed8; }
   .t-modern .inv-total .grand { color: #1d4ed8; }
+  .t-modern .inv-total .rule { border-top-color: #1d4ed8; }
 
   /* Template: Minimal */
   .t-minimal .inv-head { flex-direction: column-reverse; gap: 28px; }
@@ -190,6 +198,7 @@
   .t-minimal .items th { color: #9ca3af; font-weight: 500; border-bottom: 1px solid #e5e7eb; }
   .t-minimal .items td { border-bottom: 1px solid #f1f5f9; }
   .t-minimal .inv-total .grand { border-top: 1px solid #111; }
+  .t-minimal .inv-total .rule { border-top-color: #111; }
 
   /* Template: Bold */
   .t-bold { padding-top: 0; }
@@ -200,6 +209,7 @@
   .t-bold .inv-parties h6 { color: #b45309; }
   .t-bold .items th { background: #111827; color: #fff; }
   .t-bold .inv-total .grand { background: #facc15; color: #111827; padding: 8px 10px; border-top: 0; }
+  .t-bold .inv-total .rule { border-top-color: #111827; }
 
   /* Print: only the invoice */
   @page { size: A4; margin: 0; }
@@ -223,7 +233,7 @@
       </span>
       ShipDocs
     </a>
-    <a href="index.html" class="nav-back">&larr; All Documents</a>
+    <a href="commercial.html" class="nav-back">&larr; Templates</a>
   </div>
 </nav>
 
@@ -261,7 +271,13 @@
           <label>Date
             <input type="date" id="date">
           </label>
-          <label>Currency
+          <label>Country of origin
+            <input type="text" id="origin" placeholder="e.g. Malaysia" autocomplete="off">
+          </label>
+          <label>Ship to (country)
+            <input type="text" id="shipto" placeholder="e.g. Singapore" autocomplete="off">
+          </label>
+          <label class="full">Currency
             <select id="currency">
               <option value="RM">RM – Malaysian Ringgit</option>
               <option value="USD">USD – US Dollar</option>
@@ -278,9 +294,6 @@
               <option value="KRW">KRW – South Korean Won</option>
               <option value="AED">AED – UAE Dirham</option>
             </select>
-          </label>
-          <label>Country of origin
-            <input type="text" id="origin" placeholder="e.g. Malaysia" autocomplete="off">
           </label>
         </div>
       </section>
@@ -321,6 +334,21 @@
         <h2>Goods description</h2>
         <div id="items"></div>
         <button class="btn ghost block" id="add-item" type="button">+ Add on</button>
+
+        <div class="summary fgrid">
+          <label>Subtotal <input type="text" id="subtotal" readonly></label>
+          <label>Freight <span class="opt">Optional</span>
+            <input type="number" id="freight" inputmode="decimal" min="0" step="any" placeholder="Leave blank if none">
+          </label>
+          <label class="full">Total <input type="text" id="total" readonly></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Comments <span class="opt">Optional</span></h2>
+        <label>
+          <textarea id="comments" placeholder="e.g. Payment terms, bank details, special notes"></textarea>
+        </label>
       </section>
 
       <div class="form-actions">
@@ -359,10 +387,11 @@
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   };
   const defaults = () => ({
-    template: 'modern', no: '', date: todayISO(), logo: '', origin: '', currency: 'RM',
+    template: 'modern', no: '', date: todayISO(), logo: '', origin: '', shipto: '', currency: 'RM',
     exporter: { name: '', address: '', phone: '', email: '' },
     consignee: { name: '', address: '', phone: '', email: '' },
-    items: [blankItem()]
+    items: [blankItem()],
+    freight: '', comments: ''
   });
 
   // ---------- state ----------
@@ -397,6 +426,12 @@
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
     return m ? `${parseInt(m[3], 10)} ${MONTHS[parseInt(m[2], 10) - 1]} ${m[1]}` : '';
   }
+  const hasFreight = () => String(state.freight).trim() !== '';
+  function totals() {
+    const sub = state.items.reduce((s, it) => s + num(it.qty) * num(it.price), 0);
+    const fr = hasFreight() ? num(state.freight) : 0;
+    return { sub, fr, total: sub + fr };
+  }
 
   function party(label, p) {
     return `
@@ -422,7 +457,7 @@
         <td class="num">${money(amt)}</td>
       </tr>`;
     }).join('');
-    const total = state.items.reduce((s, it) => s + num(it.qty) * num(it.price), 0);
+    const t = totals();
 
     const paper = $('#paper');
     paper.className = 'paper t-' + state.template;
@@ -443,6 +478,7 @@
 
       <div class="inv-meta">
         <div><span>Country of origin</span><b>${ph(state.origin, '—')}</b></div>
+        <div><span>Ship to</span><b>${ph(state.shipto, '—')}</b></div>
         <div><span>Currency</span><b>${esc(state.currency)}</b></div>
       </div>
 
@@ -458,13 +494,25 @@
       </table>
 
       <div class="inv-total">
-        <div class="grand"><span>Total (${esc(state.currency)})</span><span>${money(total)}</span></div>
+        <div><span>Subtotal</span><span>${money(t.sub)}</span></div>
+        ${hasFreight() ? `<div><span>Freight</span><span>${money(t.fr)}</span></div>` : ''}
+        <div class="grand"><span>Total (${esc(state.currency)})</span><span>${money(t.total)}</span></div>
+        <span class="rule"></span>
       </div>
+
+      ${state.comments.trim() ? `
+      <div class="inv-comments">
+        <h6>Comments</h6>
+        <p>${esc(state.comments)}</p>
+      </div>` : ''}
 
       <div class="inv-foot">
         <div>We declare that this invoice shows the actual price of the goods described and that all particulars are true and correct.</div>
         <div class="sign">Authorised signature</div>
       </div>`;
+
+    $('#subtotal').value = money(t.sub);
+    $('#total').value = state.currency + ' ' + money(t.total);
     fit();
   }
 
@@ -533,7 +581,8 @@
     el.value = getPath(el.dataset.bind);
     el.addEventListener('input', () => { setPath(el.dataset.bind, el.value); persist(); render(); });
   });
-  [['#no', 'no'], ['#date', 'date'], ['#origin', 'origin'], ['#currency', 'currency']].forEach(([sel, key]) => {
+  [['#no', 'no'], ['#date', 'date'], ['#origin', 'origin'], ['#shipto', 'shipto'],
+   ['#currency', 'currency'], ['#freight', 'freight'], ['#comments', 'comments']].forEach(([sel, key]) => {
     const el = $(sel);
     el.value = state[key];
     el.addEventListener('input', () => { state[key] = el.value; persist(); render(); });
@@ -587,7 +636,7 @@
     const keep = state.template;
     state = defaults(); state.template = keep;
     document.querySelectorAll('[data-bind]').forEach(el => el.value = getPath(el.dataset.bind));
-    ['no', 'date', 'origin', 'currency'].forEach(k => $('#' + k).value = state[k]);
+    ['no', 'date', 'origin', 'shipto', 'currency', 'freight', 'comments'].forEach(k => $('#' + k).value = state[k]);
     showLogo(); renderItems(); persist(); render();
   });
 
