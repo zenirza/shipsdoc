@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Packing Slip – ShipDocs</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f7f8fa;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e5e7eb;
+    --primary: #1d4ed8;
+    --primary-dark: #1e40af;
+    --danger: #dc2626;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(15,23,42,.05), 0 8px 24px rgba(15,23,42,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1120;
+      --surface: #111a2e;
+      --text: #e5e9f0;
+      --muted: #94a3b8;
+      --border: #1f2a44;
+      --primary: #3b82f6;
+      --primary-dark: #60a5fa;
+      --danger: #f87171;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    background: var(--surface);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .container { width: 100%; max-width: 1280px; margin: 0 auto; padding: 0 16px; }
+
+  /* Navbar */
+  .nav {
+    position: sticky; top: 0; z-index: 30;
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; }
+  .logo { width: 32px; height: 32px; border-radius: 8px; background: var(--primary); color: #fff; display: grid; place-items: center; }
+  .logo svg { width: 18px; height: 18px; }
+  .nav-back { color: var(--muted); font-size: .95rem; font-weight: 500; }
+  .nav-back:hover { color: var(--text); }
+
+  /* Page head */
+  .page-head { padding: 24px 0 12px; display: flex; flex-wrap: wrap; gap: 12px; align-items: end; justify-content: space-between; }
+  .page-head h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 1.9rem); letter-spacing: -.02em; }
+  .crumbs { color: var(--muted); font-size: .85rem; margin-bottom: 4px; }
+  .crumbs a:hover { color: var(--primary); }
+  .tpl-pick { display: flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--muted); }
+  .tpl-pick select { width: auto; min-width: 140px; margin-top: 0; }
+
+  /* Tabs (mobile) */
+  .tabs { display: flex; gap: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin: 8px 0 16px; position: sticky; top: 68px; z-index: 20; }
+  .tab { flex: 1; appearance: none; border: 0; background: none; font: inherit; font-weight: 600; color: var(--muted); padding: 10px; min-height: 44px; border-radius: 9px; cursor: pointer; }
+  .tab.active { background: var(--primary); color: #fff; }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 1fr; gap: 20px; padding-bottom: 48px; }
+  .preview-col { display: none; }
+  body.show-preview .preview-col { display: block; }
+  body.show-preview .form-col { display: none; }
+  @media (min-width: 1000px) {
+    .tabs { display: none; }
+    .layout { grid-template-columns: minmax(420px, 520px) 1fr; align-items: start; }
+    .preview-col, body.show-preview .preview-col { display: block; position: sticky; top: 76px; }
+    body.show-preview .form-col { display: block; }
+  }
+
+  /* Form cards */
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; margin-bottom: 16px; }
+  .card h2 { margin: 0 0 14px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+  .hint { margin: -6px 0 14px; color: var(--muted); font-size: .85rem; }
+  .opt { font-size: .72rem; font-weight: 600; color: var(--muted); background: var(--surface); border: 1px solid var(--border); padding: 1px 8px; border-radius: 999px; }
+  .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .fgrid .full { grid-column: 1 / -1; }
+  label { display: block; font-size: .82rem; font-weight: 600; color: var(--muted); }
+  input, select, textarea {
+    display: block; width: 100%; margin-top: 4px;
+    font: inherit; font-size: 16px;
+    color: var(--text); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; min-height: 44px;
+  }
+  textarea { resize: vertical; min-height: 76px; }
+  input:focus, select:focus, textarea:focus { outline: 3px solid color-mix(in srgb, var(--primary) 35%, transparent); border-color: var(--primary); }
+  input[readonly] { background: var(--surface); color: var(--muted); }
+
+  .logo-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .logo-thumb { width: 96px; height: 56px; border: 1px dashed var(--border); border-radius: 8px; display: grid; place-items: center; font-size: .7rem; color: var(--muted); overflow: hidden; background: var(--surface); }
+  .logo-thumb img { max-width: 100%; max-height: 100%; }
+  .file { position: absolute; width: 1px; height: 1px; opacity: 0; }
+
+  /* Items */
+  .item { border: 1px solid var(--border); border-radius: 12px; padding: 14px; margin-bottom: 12px; background: var(--surface); }
+  .item-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .item-head b { font-size: .9rem; }
+  .rm { appearance: none; background: none; border: 0; color: var(--danger); font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; padding: 6px 8px; min-height: 36px; }
+  .rm:disabled { opacity: .35; cursor: not-allowed; }
+  .sub-title { grid-column: 1 / -1; margin: 6px 0 -2px; font-size: .78rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 700; }
+  .summary { margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+  .btn {
+    appearance: none; cursor: pointer; font: inherit; font-weight: 600; font-size: .95rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 16px; min-height: 44px; border-radius: 10px;
+    border: 1px solid var(--primary); background: var(--primary); color: #fff;
+    transition: background .15s ease;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn.ghost { background: transparent; color: var(--primary); }
+  .btn.ghost:hover { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+  .btn.block { width: 100%; border-style: dashed; }
+  .btn.small { min-height: 38px; padding: 6px 12px; font-size: .88rem; }
+  .btn:focus-visible, .tab:focus-visible { outline: 3px solid color-mix(in srgb, var(--primary) 50%, transparent); outline-offset: 2px; }
+  .form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .form-actions .btn { flex: 1; }
+
+  /* Preview column */
+  .preview-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
+  .preview-head h2 { margin: 0; font-size: 1.05rem; }
+  .preview-wrap { position: relative; width: 100%; max-width: 794px; margin: 0 auto; background: #fff; box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+
+  /* ===== Packing slip paper (A4 width 794px, always white) ===== */
+  .paper {
+    position: absolute; top: 0; left: 0;
+    width: 794px; min-height: 1123px; padding: 48px;
+    background: #fff; color: #1f2937;
+    font-family: Inter, system-ui, "Segoe UI", Roboto, sans-serif;
+    font-size: 13px; line-height: 1.5;
+    transform-origin: top left;
+    display: flex; flex-direction: column;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .paper h1 { margin: 0; }
+  .ph { color: #b6bcc6; }
+  .doc-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; }
+  .doc-head.no-logo { justify-content: flex-end; }
+  .doc-logo { max-width: 180px; max-height: 80px; object-fit: contain; display: block; }
+  .doc-title { text-align: right; }
+  .doc-title h1 { font-size: 26px; letter-spacing: .02em; }
+  .doc-title p { margin: 2px 0 0; color: #6b7280; }
+  .parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px; }
+  .parties h6 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; }
+  .parties p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+  .meta { display: flex; flex-wrap: wrap; gap: 12px 40px; margin-bottom: 24px; }
+  .meta span { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; }
+  .meta b { font-weight: 600; overflow-wrap: anywhere; }
+  table.items { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+  .items th { text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: .05em; padding: 8px 8px; white-space: nowrap; }
+  .items td { padding: 9px 8px; border-bottom: 1px solid #e5e7eb; vertical-align: top; overflow-wrap: anywhere; }
+  .items .num { text-align: right; }
+  .items .c-no { width: 44px; }
+  .items .c-desc { width: 38%; }
+  .items tfoot td { font-weight: 700; border-bottom: 0; border-top: 2px solid currentColor; padding-top: 10px; }
+  .doc-comments { margin-top: 28px; }
+  .doc-comments h6 { margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: #6b7280; }
+  .doc-comments p { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+  .doc-foot { margin-top: auto; padding-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; gap: 40px; font-size: 11px; color: #6b7280; }
+  .sign { width: 200px; text-align: center; border-top: 1px solid #9ca3af; padding-top: 6px; flex: none; }
+
+  /* Template: Classic */
+  .t-classic { font-family: Georgia, "Times New Roman", serif; }
+  .t-classic .doc-head { border-bottom: 3px double #111; padding-bottom: 16px; align-items: center; }
+  .t-classic .doc-title h1 { text-transform: uppercase; }
+  .t-classic .items th { border-top: 1px solid #111; border-bottom: 1px solid #111; }
+
+  /* Template: Modern */
+  .t-modern { padding-top: 0; }
+  .t-modern .doc-head { margin: 0 -48px 28px; padding: 32px 48px; background: #0f766e; color: #fff; align-items: center; }
+  .t-modern .doc-title p { color: #ccfbf1; }
+  .t-modern .doc-logo { background: #fff; padding: 6px 10px; border-radius: 6px; }
+  .t-modern .items th { background: #f0fdfa; color: #0f766e; }
+
+  /* Template: Minimal */
+  .t-minimal .doc-head { flex-direction: column-reverse; gap: 28px; }
+  .t-minimal .doc-title { text-align: left; }
+  .t-minimal .doc-title h1 { font-size: 20px; font-weight: 500; letter-spacing: .22em; }
+  .t-minimal .items th { color: #9ca3af; font-weight: 500; border-bottom: 1px solid #e5e7eb; }
+  .t-minimal .items td { border-bottom: 1px solid #f1f5f9; }
+
+  /* Template: Bold */
+  .t-bold { padding-top: 0; }
+  .t-bold .doc-head { margin: 0 -48px 28px; padding: 32px 48px; background: #111827; color: #fff; border-bottom: 6px solid #facc15; align-items: center; }
+  .t-bold .doc-title h1 { color: #facc15; }
+  .t-bold .doc-title p { color: #d1d5db; }
+  .t-bold .doc-logo { background: #fff; padding: 6px 10px; border-radius: 6px; }
+  .t-bold .parties h6 { color: #b45309; }
+  .t-bold .items th { background: #111827; color: #fff; }
+  .t-bold .items tfoot td { background: #facc15; color: #111827; border-top: 0; }
+
+  /* Print: only the slip */
+  @page { size: A4; margin: 0; }
+  @media print {
+    body { background: #fff; }
+    .nav, .page-head, .tabs, .form-col, .preview-head, .no-print { display: none !important; }
+    .layout { display: block; padding: 0; }
+    .preview-col { display: block !important; position: static; }
+    .preview-wrap { height: auto !important; border: 0; box-shadow: none; max-width: none; margin: 0; overflow: visible; }
+    .paper { position: static; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav no-print">
+  <div class="container nav-inner">
+    <a href="index.html" class="brand">
+      <span class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5z"/><path d="M3 8v8l9 5 9-5V8"/></svg>
+      </span>
+      ShipDocs
+    </a>
+    <a href="index.html" class="nav-back">&larr; All documents</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-head">
+    <div>
+      <div class="crumbs"><a href="index.html">Home</a> / Packing Slip</div>
+      <h1>Fill in your packing slip</h1>
+    </div>
+    <label class="tpl-pick">Template
+      <select id="template">
+        <option value="classic">Classic</option>
+        <option value="modern">Modern</option>
+        <option value="minimal">Minimal</option>
+        <option value="bold">Bold</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" id="tab-prev" role="tab">Preview</button>
+    <button class="tab active" id="tab-edit" role="tab">Edit</button>
+  </div>
+
+  <div class="layout">
+    <!-- ================= FORM ================= -->
+    <div class="form-col">
+
+      <section class="card">
+        <h2>Packing slip details</h2>
+        <div class="fgrid">
+          <label>Packing slip No. <span class="opt">Optional</span>
+            <input type="text" id="no" placeholder="e.g. PS-2026-0001" autocomplete="off">
+          </label>
+          <label>Date
+            <input type="date" id="date">
+          </label>
+          <label class="full">Invoice No. <span class="opt">Optional</span>
+            <input type="text" id="invno" placeholder="e.g. CI-2026-0001" autocomplete="off">
+          </label>
+          <label>Country of origin <span class="opt">Optional</span>
+            <input type="text" id="origin" placeholder="e.g. Malaysia" autocomplete="off">
+          </label>
+          <label>Ship to (country) <span class="opt">Optional</span>
+            <input type="text" id="shipto" placeholder="e.g. Singapore" autocomplete="off">
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Your logo <span class="opt">Optional</span></h2>
+        <div class="logo-row">
+          <div class="logo-thumb" id="logo-thumb">No logo</div>
+          <label class="btn ghost small" style="position:relative">
+            Upload logo
+            <input type="file" accept="image/*" id="logo-file" class="file">
+          </label>
+          <button class="btn ghost small" id="logo-clear" type="button" hidden>Remove</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Exporter</h2>
+        <div class="fgrid">
+          <label class="full">Name <input type="text" data-bind="exporter.name" autocomplete="organization"></label>
+          <label class="full">Address <textarea data-bind="exporter.address" autocomplete="street-address"></textarea></label>
+          <label>Phone no. <input type="tel" data-bind="exporter.phone" autocomplete="tel"></label>
+          <label>Email <span class="opt">Optional</span> <input type="email" data-bind="exporter.email" autocomplete="email"></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Consignee</h2>
+        <div class="fgrid">
+          <label class="full">Name <input type="text" data-bind="consignee.name" autocomplete="off"></label>
+          <label class="full">Address <textarea data-bind="consignee.address" autocomplete="off"></textarea></label>
+          <label>Phone no. <input type="tel" data-bind="consignee.phone" autocomplete="off"></label>
+          <label>Email <span class="opt">Optional</span> <input type="email" data-bind="consignee.email" autocomplete="off"></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Goods</h2>
+        <p class="hint">Description and Ship Qty are required. An optional column only appears on the slip when you fill it in.</p>
+        <div id="items"></div>
+        <button class="btn ghost block" id="add-item" type="button">+ Add on</button>
+
+        <div class="summary" id="summary"></div>
+      </section>
+
+      <section class="card">
+        <h2>Comments <span class="opt">Optional</span></h2>
+        <label>
+          <textarea id="comments" placeholder="e.g. Handle with care, keep dry"></textarea>
+        </label>
+      </section>
+
+      <div class="form-actions">
+        <button class="btn ghost" id="reset" type="button">Clear form</button>
+        <button class="btn" id="to-preview" type="button">Preview &amp; print</button>
+      </div>
+    </div>
+
+    <!-- ================= PREVIEW ================= -->
+    <div class="preview-col">
+      <div class="preview-head">
+        <h2>Preview</h2>
+        <button class="btn small" id="print" type="button">Print / Save PDF</button>
+      </div>
+      <div class="preview-wrap" id="wrap">
+        <div class="paper" id="paper"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<datalist id="uoms">
+  <option value="PCS"><option value="SET"><option value="PAIR"><option value="BOX">
+  <option value="CTN"><option value="KG"><option value="G"><option value="M">
+  <option value="L"><option value="ROLL"><option value="PKT"><option value="UNIT">
+</datalist>
+
+<script>
+  const KEY_DATA = 'ps_data_v2';
+  const KEY_TPL = 'ps_template';
+  const $ = s => document.querySelector(s);
+
+  const blankItem = () => ({ desc: '', qty: '', uom: '', ctn: '', ctns: '', nw: '', gw: '', cbm: '' });
+  const todayISO = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  };
+  const defaults = () => ({
+    template: 'modern', no: '', invno: '', date: todayISO(), logo: '', origin: '', shipto: '',
+    exporter: { name: '', address: '', phone: '', email: '' },
+    consignee: { name: '', address: '', phone: '', email: '' },
+    items: [blankItem()],
+    comments: ''
+  });
+
+  // Table columns. Required: No., Description, Ship Qty. The rest show only when filled in.
+  const COLS = [
+    { key: 'no',   label: 'No.',           req: true,  cls: 'c-no' },
+    { key: 'desc', label: 'Description',   req: true,  cls: 'c-desc' },
+    { key: 'qty',  label: 'Ship Qty',      req: true,  cls: 'num' },
+    { key: 'uom',  label: 'UOM',           req: false, cls: '' },
+    { key: 'ctn',  label: 'Carton No.',    req: false, cls: '' },
+    { key: 'ctns', label: 'Ctns',          req: false, cls: 'num', sum: 0 },
+    { key: 'nw',   label: 'Net wt (kg)',   req: false, cls: 'num', sum: 2 },
+    { key: 'gw',   label: 'Gross wt (kg)', req: false, cls: 'num', sum: 2 },
+    { key: 'cbm',  label: 'CBM',           req: false, cls: 'num', sum: 3 }
+  ];
+
+  // ---------- state ----------
+  let state = defaults();
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY_DATA) || 'null');
+    if (saved) state = Object.assign(defaults(), saved);
+    const qt = new URLSearchParams(location.search).get('t') || localStorage.getItem(KEY_TPL);
+    if (qt) state.template = qt;
+  } catch (e) {
+    const qt = new URLSearchParams(location.search).get('t');
+    if (qt) state.template = qt;
+  }
+  if (!['classic', 'modern', 'minimal', 'bold'].includes(state.template)) state.template = 'modern';
+  if (!state.items || !state.items.length) state.items = [blankItem()];
+
+  function persist() {
+    try {
+      localStorage.setItem(KEY_DATA, JSON.stringify(state));
+      localStorage.setItem(KEY_TPL, state.template);
+    } catch (e) {}
+  }
+
+  // ---------- helpers ----------
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const ph = (v, p) => String(v ?? '').trim() ? esc(v) : `<span class="ph">${p}</span>`;
+  const num = v => { const n = parseFloat(v); return isNaN(n) ? 0 : n; };
+  const fmt = (n, d) => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
+  const filled = v => String(v ?? '').trim() !== '';
+  const fmtQty = n => fmt(n, Number.isInteger(n) ? 0 : 2);
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  function fmtDate(iso) {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+    return m ? `${parseInt(m[3], 10)} ${MONTHS[parseInt(m[2], 10) - 1]} ${m[1]}` : '';
+  }
+  const colVisible = c => c.req || state.items.some(it => filled(it[c.key]));
+  const sumOf = k => state.items.reduce((s, it) => s + num(it[k]), 0);
+
+  function party(label, p) {
+    return `
+      <div>
+        <h6>${label}</h6>
+        <p><b>${ph(p.name, label + ' name')}</b></p>
+        <p>${ph(p.address, 'Address')}</p>
+        <p>Tel: ${ph(p.phone, 'Phone no.')}</p>
+        ${p.email.trim() ? `<p>Email: ${esc(p.email)}</p>` : ''}
+      </div>`;
+  }
+
+  function cellHTML(c, it, i) {
+    switch (c.key) {
+      case 'no':   return String(i + 1);
+      case 'desc': return ph(it.desc, 'Description of goods');
+      case 'qty':  return filled(it.qty) ? fmtQty(num(it.qty)) : '';
+      case 'ctns': return filled(it.ctns) ? fmt(num(it.ctns), 0) : '';
+      case 'nw':   return filled(it.nw) ? fmt(num(it.nw), 2) : '';
+      case 'gw':   return filled(it.gw) ? fmt(num(it.gw), 2) : '';
+      case 'cbm':  return filled(it.cbm) ? fmt(num(it.cbm), 3) : '';
+      default:     return esc(it[c.key]);
+    }
+  }
+
+  // ---------- render preview ----------
+  function render() {
+    const cols = COLS.filter(colVisible);
+
+    const head = cols.map(c => `<th class="${c.cls}">${c.label}</th>`).join('');
+    const rows = state.items.map((it, i) =>
+      `<tr>${cols.map(c => `<td class="${c.cls}">${cellHTML(c, it, i)}</td>`).join('')}</tr>`
+    ).join('');
+    const foot = cols.map(c => {
+      if (c.key === 'desc') return `<td class="${c.cls}">TOTAL</td>`;
+      if (c.key === 'qty')  return `<td class="${c.cls}">${fmtQty(sumOf('qty'))}</td>`;
+      if (c.sum !== undefined) return `<td class="${c.cls}">${fmt(sumOf(c.key), c.sum)}</td>`;
+      return '<td></td>';
+    }).join('');
+
+    const meta = [];
+    if (filled(state.origin)) meta.push(`<div><span>Country of origin</span><b>${esc(state.origin)}</b></div>`);
+    if (filled(state.shipto)) meta.push(`<div><span>Ship to</span><b>${esc(state.shipto)}</b></div>`);
+
+    const paper = $('#paper');
+    paper.className = 'paper t-' + state.template;
+    paper.innerHTML = `
+      <div class="doc-head ${state.logo ? '' : 'no-logo'}">
+        ${state.logo ? `<img class="doc-logo" src="${state.logo}" alt="Logo">` : ''}
+        <div class="doc-title">
+          <h1>PACKING SLIP</h1>
+          ${filled(state.no) ? `<p>Packing Slip No: ${esc(state.no)}</p>` : ''}
+          ${filled(state.date) ? `<p>Date: ${esc(fmtDate(state.date))}</p>` : ''}
+          ${filled(state.invno) ? `<p>Invoice No: ${esc(state.invno)}</p>` : ''}
+        </div>
+      </div>
+
+      <div class="parties">
+        ${party('Exporter', state.exporter)}
+        ${party('Consignee', state.consignee)}
+      </div>
+
+      ${meta.length ? `<div class="meta">${meta.join('')}</div>` : ''}
+
+      <table class="items">
+        <thead><tr>${head}</tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr>${foot}</tr></tfoot>
+      </table>
+
+      ${filled(state.comments) ? `
+      <div class="doc-comments">
+        <h6>Comments</h6>
+        <p>${esc(state.comments)}</p>
+      </div>` : ''}
+
+      <div class="doc-foot">
+        <div>Please check the goods on receipt and report any shortage or damage immediately.</div>
+        <div class="sign">Authorised signature</div>
+      </div>`;
+
+    renderSummary();
+    fit();
+  }
+
+  // totals box in the form (only shows totals that have data)
+  function renderSummary() {
+    const parts = [`<label>Total ship qty <input type="text" readonly value="${fmtQty(sumOf('qty'))}"></label>`];
+    [['ctns', 'Total cartons', 0], ['nw', 'Total net wt (kg)', 2], ['gw', 'Total gross wt (kg)', 2], ['cbm', 'Total CBM', 3]]
+      .forEach(([k, label, d]) => {
+        if (state.items.some(it => filled(it[k]))) {
+          parts.push(`<label>${label} <input type="text" readonly value="${fmt(sumOf(k), d)}"></label>`);
+        }
+      });
+    $('#summary').innerHTML = parts.join('');
+  }
+
+  // scale the A4 sheet to the preview width
+  function fit() {
+    const wrap = $('#wrap'), paper = $('#paper');
+    const w = wrap.clientWidth;
+    if (!w) return;
+    const s = w / 794;
+    paper.style.transform = `scale(${s})`;
+    wrap.style.height = paper.offsetHeight * s + 'px';
+  }
+  window.addEventListener('resize', fit);
+
+  // ---------- items form ----------
+  function itemsHTML() {
+    return state.items.map((it, i) => `
+      <div class="item" data-i="${i}">
+        <div class="item-head">
+          <b>No. ${i + 1}</b>
+          <button class="rm" type="button" ${state.items.length === 1 ? 'disabled' : ''}>Remove</button>
+        </div>
+        <div class="fgrid">
+          <label class="full">Description <input type="text" data-k="desc" value="${esc(it.desc)}" autocomplete="off"></label>
+          <label>Ship Qty <input type="number" data-k="qty" inputmode="decimal" min="0" step="any" value="${esc(it.qty)}"></label>
+          <label>UOM <span class="opt">Optional</span> <input type="text" data-k="uom" list="uoms" value="${esc(it.uom)}" autocomplete="off"></label>
+
+          <div class="sub-title">Optional details</div>
+          <label>Carton No. <input type="text" data-k="ctn" placeholder="e.g. 1-5" value="${esc(it.ctn)}" autocomplete="off"></label>
+          <label>No. of cartons <input type="number" data-k="ctns" inputmode="numeric" min="0" step="1" value="${esc(it.ctns)}"></label>
+          <label>Net weight (kg) <input type="number" data-k="nw" inputmode="decimal" min="0" step="any" value="${esc(it.nw)}"></label>
+          <label>Gross weight (kg) <input type="number" data-k="gw" inputmode="decimal" min="0" step="any" value="${esc(it.gw)}"></label>
+          <label class="full">Measurement (CBM) <input type="number" data-k="cbm" inputmode="decimal" min="0" step="any" value="${esc(it.cbm)}"></label>
+        </div>
+      </div>`).join('');
+  }
+  function renderItems() { $('#items').innerHTML = itemsHTML(); }
+
+  $('#items').addEventListener('input', e => {
+    const k = e.target.dataset.k;
+    const box = e.target.closest('.item');
+    if (!k || !box) return;
+    state.items[+box.dataset.i][k] = e.target.value;
+    persist(); render();
+  });
+  $('#items').addEventListener('click', e => {
+    if (!e.target.classList.contains('rm')) return;
+    const i = +e.target.closest('.item').dataset.i;
+    if (state.items.length > 1) { state.items.splice(i, 1); renderItems(); persist(); render(); }
+  });
+  $('#add-item').addEventListener('click', () => {
+    state.items.push(blankItem());
+    renderItems(); persist(); render();
+    const last = $('#items').lastElementChild;
+    if (last) last.querySelector('input').focus();
+  });
+
+  // ---------- simple fields ----------
+  function setPath(path, val) {
+    const parts = path.split('.');
+    let o = state;
+    while (parts.length > 1) o = o[parts.shift()];
+    o[parts[0]] = val;
+  }
+  function getPath(path) { return path.split('.').reduce((o, k) => o[k], state); }
+
+  document.querySelectorAll('[data-bind]').forEach(el => {
+    el.value = getPath(el.dataset.bind);
+    el.addEventListener('input', () => { setPath(el.dataset.bind, el.value); persist(); render(); });
+  });
+  const FIELDS = [['#no', 'no'], ['#date', 'date'], ['#invno', 'invno'], ['#origin', 'origin'], ['#shipto', 'shipto'], ['#comments', 'comments']];
+  FIELDS.forEach(([sel, key]) => {
+    const el = $(sel);
+    el.value = state[key];
+    el.addEventListener('input', () => { state[key] = el.value; persist(); render(); });
+  });
+  const tpl = $('#template');
+  tpl.value = state.template;
+  tpl.addEventListener('change', () => { state.template = tpl.value; persist(); render(); });
+
+  // ---------- logo ----------
+  function showLogo() {
+    $('#logo-thumb').innerHTML = state.logo ? `<img src="${state.logo}" alt="">` : 'No logo';
+    $('#logo-clear').hidden = !state.logo;
+  }
+  $('#logo-file').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 400, r = Math.min(1, max / img.width, max / img.height);
+        const c = document.createElement('canvas');
+        c.width = Math.round(img.width * r); c.height = Math.round(img.height * r);
+        c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+        state.logo = c.toDataURL('image/png');
+        showLogo(); persist(); render();
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(f);
+    e.target.value = '';
+  });
+  $('#logo-clear').addEventListener('click', () => { state.logo = ''; showLogo(); persist(); render(); });
+
+  // ---------- tabs, print, reset ----------
+  function showTab(preview) {
+    document.body.classList.toggle('show-preview', preview);
+    $('#tab-edit').classList.toggle('active', !preview);
+    $('#tab-prev').classList.toggle('active', preview);
+    window.scrollTo(0, 0);
+    fit();
+  }
+  $('#tab-edit').addEventListener('click', () => showTab(false));
+  $('#tab-prev').addEventListener('click', () => showTab(true));
+  $('#to-preview').addEventListener('click', () => showTab(true));
+  $('#print').addEventListener('click', () => window.print());
+
+  $('#reset').addEventListener('click', () => {
+    if (!confirm('Clear all fields?')) return;
+    const keep = state.template;
+    state = defaults(); state.template = keep;
+    document.querySelectorAll('[data-bind]').forEach(el => el.value = getPath(el.dataset.bind));
+    FIELDS.forEach(([sel, key]) => $(sel).value = state[key]);
+    showLogo(); renderItems(); persist(); render();
+  });
+
+  // ---------- init ----------
+  showLogo();
+  renderItems();
+  render();
+  persist();
+</script>
+</body>
+</html>

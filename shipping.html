@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shipping Mark – ShipDocs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+<style id="page-style">@page { size: 100mm 150mm; margin: 0; }</style>
+<style>
+  :root {
+    --bg: #ffffff;
+    --surface: #f7f8fa;
+    --text: #0f172a;
+    --muted: #64748b;
+    --border: #e5e7eb;
+    --primary: #1d4ed8;
+    --primary-dark: #1e40af;
+    --radius: 14px;
+    --shadow: 0 1px 2px rgba(15,23,42,.05), 0 8px 24px rgba(15,23,42,.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b1120;
+      --surface: #111a2e;
+      --text: #e5e9f0;
+      --muted: #94a3b8;
+      --border: #1f2a44;
+      --primary: #3b82f6;
+      --primary-dark: #60a5fa;
+      --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px rgba(0,0,0,.35);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    background: var(--surface);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  .container { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 16px; }
+
+  /* Navbar */
+  .nav {
+    position: sticky; top: 0; z-index: 30;
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; height: 60px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 1.1rem; }
+  .logo { width: 32px; height: 32px; border-radius: 8px; background: var(--primary); color: #fff; display: grid; place-items: center; }
+  .logo svg { width: 18px; height: 18px; }
+  .nav-back { color: var(--muted); font-size: .95rem; font-weight: 500; }
+  .nav-back:hover { color: var(--text); }
+
+  /* Page head */
+  .page-head { padding: 24px 0 12px; }
+  .page-head h1 { margin: 0; font-size: clamp(1.4rem, 4vw, 1.9rem); letter-spacing: -.02em; }
+  .crumbs { color: var(--muted); font-size: .85rem; margin-bottom: 4px; }
+  .crumbs a:hover { color: var(--primary); }
+
+  /* Tabs (mobile) */
+  .tabs { display: flex; gap: 6px; background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 4px; margin: 8px 0 16px; position: sticky; top: 68px; z-index: 20; }
+  .tab { flex: 1; appearance: none; border: 0; background: none; font: inherit; font-weight: 600; color: var(--muted); padding: 10px; min-height: 44px; border-radius: 9px; cursor: pointer; }
+  .tab.active { background: var(--primary); color: #fff; }
+
+  /* Layout */
+  .layout { display: grid; grid-template-columns: 1fr; gap: 20px; padding-bottom: 48px; }
+  .preview-col { display: none; }
+  body.show-preview .preview-col { display: block; }
+  body.show-preview .form-col { display: none; }
+  @media (min-width: 900px) {
+    .tabs { display: none; }
+    .layout { grid-template-columns: minmax(380px, 520px) 1fr; align-items: start; }
+    .preview-col, body.show-preview .preview-col { display: block; position: sticky; top: 76px; }
+    body.show-preview .form-col { display: block; }
+  }
+
+  /* Form cards */
+  .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; margin-bottom: 16px; }
+  .card h2 { margin: 0 0 14px; font-size: 1.05rem; display: flex; align-items: center; gap: 8px; }
+  .hint { margin: -6px 0 14px; color: var(--muted); font-size: .85rem; }
+  .opt { font-size: .72rem; font-weight: 600; color: var(--muted); background: var(--surface); border: 1px solid var(--border); padding: 1px 8px; border-radius: 999px; }
+  .fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .fgrid.three { grid-template-columns: 1fr 1fr 1fr; }
+  .fgrid .full { grid-column: 1 / -1; }
+  label { display: block; font-size: .82rem; font-weight: 600; color: var(--muted); }
+  input, select, textarea {
+    display: block; width: 100%; margin-top: 4px;
+    font: inherit; font-size: 16px;
+    color: var(--text); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 12px; min-height: 44px;
+  }
+  textarea { resize: vertical; min-height: 76px; }
+  input:focus, select:focus, textarea:focus { outline: 3px solid color-mix(in srgb, var(--primary) 35%, transparent); border-color: var(--primary); }
+  .check { display: flex; align-items: center; gap: 10px; font-size: .92rem; color: var(--text); font-weight: 500; cursor: pointer; min-height: 44px; }
+  .check input { width: 20px; height: 20px; min-height: 0; margin: 0; accent-color: var(--primary); flex: none; }
+  .size-info { margin-top: 12px; padding: 10px 12px; border-radius: 10px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); font-size: .88rem; }
+  .size-info b { color: var(--text); }
+
+  .btn {
+    appearance: none; cursor: pointer; font: inherit; font-weight: 600; font-size: .95rem;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 10px 16px; min-height: 44px; border-radius: 10px;
+    border: 1px solid var(--primary); background: var(--primary); color: #fff;
+    transition: background .15s ease;
+  }
+  .btn:hover { background: var(--primary-dark); }
+  .btn.ghost { background: transparent; color: var(--primary); }
+  .btn.ghost:hover { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+  .btn.small { min-height: 38px; padding: 6px 12px; font-size: .88rem; }
+  .btn:focus-visible, .tab:focus-visible { outline: 3px solid color-mix(in srgb, var(--primary) 50%, transparent); outline-offset: 2px; }
+  .form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .form-actions .btn { flex: 1; }
+
+  /* Preview column */
+  .preview-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; gap: 10px; }
+  .preview-head h2 { margin: 0; font-size: 1.05rem; }
+  .note { text-align: center; color: var(--muted); font-size: .85rem; margin-top: 10px; }
+  .preview-wrap { position: relative; width: 100%; max-width: 520px; margin: 0 auto; background: #fff; box-shadow: var(--shadow); border: 1px solid var(--border); overflow: hidden; }
+
+  /* ===== Label: sized in mm, text auto-shrinks to fit (--fs is set by script) ===== */
+  .label {
+    --w: 100; --h: 150; --fs: 5; --pad: 5;
+    width: calc(var(--w) * 1mm);
+    height: calc(var(--h) * 1mm);
+    padding: calc(var(--pad) * 1mm);
+    font-size: calc(var(--fs) * 1mm);
+    background: #fff; color: #111;
+    font-family: "Roboto Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+    font-stretch: condensed; font-weight: 400;
+    line-height: 1.25;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  #preview .label { position: absolute; top: 0; left: 0; transform-origin: top left; }
+  .ph { color: #c2c7d0; }
+  .l-ref { font-size: 1.5em; font-weight: 700; text-transform: uppercase; line-height: 1.15; padding-bottom: .55em; border-bottom: 1px dotted #666; overflow-wrap: anywhere; }
+  .l-carton { font-weight: 700; font-size: 1em; padding: .35em 0 0; letter-spacing: .04em; }
+  .l-sec { padding: .6em 0; border-bottom: 1px dotted #666; }
+  .l-sec h4 { margin: 0; font-size: 1.1em; font-weight: 700; }
+  .l-sec p { margin: 0; font-size: 1.1em; white-space: pre-line; overflow-wrap: anywhere; }
+  .l-grid { margin: .65em 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #222; }
+  .l-grid > div { border-right: 1px solid #222; text-align: center; overflow-wrap: anywhere; min-width: 0; }
+  .l-grid > div:nth-child(3n) { border-right: 0; }
+  .l-grid .h { font-weight: 700; font-size: 1em; text-transform: uppercase; padding: .45em .2em; border-bottom: 1px solid #222; }
+  .l-grid .v { min-height: 5.2em; padding: .5em .3em; font-size: 1.1em; display: flex; align-items: center; justify-content: center; }
+  .l-foot { margin-top: auto; padding-top: .6em; border-top: 1px dotted #666; text-align: center; font-weight: 700; font-size: 1.3em; text-transform: uppercase; overflow-wrap: anywhere; }
+
+  /* Print area: measured off-screen, shown only when printing */
+  #print-area { position: fixed; left: -99999px; top: 0; visibility: hidden; pointer-events: none; }
+  @media print {
+    html, body { margin: 0; padding: 0; background: #fff; }
+    .nav, .page-head, .tabs, .layout { display: none !important; }
+    #print-area { position: static; visibility: visible; }
+    #print-area .label { break-after: page; page-break-after: always; }
+    #print-area .label:last-child { break-after: auto; page-break-after: auto; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="brand">
+      <span class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5 9 5z"/><path d="M3 8v8l9 5 9-5V8"/></svg>
+      </span>
+      ShipDocs
+    </a>
+    <a href="index.html" class="nav-back">&larr; All documents</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-head">
+    <div class="crumbs"><a href="index.html">Home</a> / Shipping Mark</div>
+    <h1>Create your shipping mark</h1>
+  </div>
+
+  <div class="tabs" role="tablist">
+    <button class="tab active" id="tab-edit" role="tab">Edit</button>
+    <button class="tab" id="tab-prev" role="tab">Preview</button>
+  </div>
+
+  <div class="layout">
+    <!-- ================= FORM ================= -->
+    <div class="form-col">
+
+      <section class="card">
+        <h2>Shipping mark <span class="opt">Optional</span></h2>
+        <p class="hint">The bold line at the top of the label.</p>
+        <label>Mark / reference
+          <input type="text" id="ref" placeholder="e.g. HBM/IPOST/6089/ SHOBICH" autocomplete="off">
+        </label>
+      </section>
+
+      <section class="card">
+        <h2>Shipper</h2>
+        <div class="fgrid">
+          <label class="full">Name <input type="text" data-bind="shipper.name" autocomplete="organization"></label>
+          <label class="full">Phone no. <span class="opt">Optional</span> <input type="tel" data-bind="shipper.phone" autocomplete="tel"></label>
+          <label class="full">Address <textarea data-bind="shipper.address" autocomplete="street-address"></textarea></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Consignee</h2>
+        <div class="fgrid">
+          <label class="full">Name <input type="text" data-bind="consignee.name" autocomplete="off"></label>
+          <label class="full">Phone no. <span class="opt">Optional</span> <input type="tel" data-bind="consignee.phone" autocomplete="off"></label>
+          <label class="full">Address <textarea data-bind="consignee.address" autocomplete="off"></textarea></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Weight / Dimension / Pieces</h2>
+        <p class="hint">Leave a box empty to write on it by hand after printing.</p>
+        <label class="check"><input type="checkbox" id="showTable"> Show this table on the label</label>
+        <div class="fgrid" id="table-fields">
+          <label>Weight <input type="text" id="weight" placeholder="e.g. 12 kg" autocomplete="off"></label>
+          <label>Dimension <input type="text" id="dimension" placeholder="e.g. 40x30x30 cm" autocomplete="off"></label>
+          <label class="full">Pieces <input type="text" id="pieces" inputmode="numeric" placeholder="e.g. 5" autocomplete="off"></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Route</h2>
+        <div class="fgrid">
+          <label>From (country) <input type="text" id="from" placeholder="e.g. Malaysia" autocomplete="off"></label>
+          <label>To (country) <input type="text" id="to" placeholder="e.g. Indonesia" autocomplete="off"></label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Paper size</h2>
+        <p class="hint">The text shrinks automatically so everything fits the size you choose.</p>
+        <div class="fgrid">
+          <label class="full">Size
+            <select id="size">
+              <optgroup label="Shipping labels">
+                <option value="l100x150">100 × 150 mm (4 × 6 in)</option>
+                <option value="l100x100">100 × 100 mm</option>
+                <option value="l100x75">100 × 75 mm</option>
+                <option value="l100x50">100 × 50 mm</option>
+                <option value="l76x51">76 × 51 mm (3 × 2 in)</option>
+              </optgroup>
+              <optgroup label="A series">
+                <option value="a3">A3 (297 × 420 mm)</option>
+                <option value="a4">A4 (210 × 297 mm)</option>
+                <option value="a5">A5 (148 × 210 mm)</option>
+                <option value="a6">A6 (105 × 148 mm)</option>
+                <option value="a7">A7 (74 × 105 mm)</option>
+              </optgroup>
+              <optgroup label="B series">
+                <option value="b4">B4 (250 × 353 mm)</option>
+                <option value="b5">B5 (176 × 250 mm)</option>
+                <option value="b6">B6 (125 × 176 mm)</option>
+              </optgroup>
+              <optgroup label="US sizes">
+                <option value="letter">Letter (8.5 × 11 in)</option>
+                <option value="legal">Legal (8.5 × 14 in)</option>
+                <option value="half">Half letter (5.5 × 8.5 in)</option>
+              </optgroup>
+              <optgroup label="Your own">
+                <option value="custom">Custom size…</option>
+              </optgroup>
+            </select>
+          </label>
+        </div>
+
+        <div class="fgrid three" id="custom-fields" style="margin-top:12px">
+          <label>Width <input type="number" id="cw" inputmode="decimal" min="0" step="any"></label>
+          <label>Height <input type="number" id="ch" inputmode="decimal" min="0" step="any"></label>
+          <label>Unit
+            <select id="cunit">
+              <option value="mm">mm</option>
+              <option value="cm">cm</option>
+              <option value="in">inch</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="fgrid" style="margin-top:12px">
+          <label id="orient-wrap">Orientation
+            <select id="orient">
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </label>
+          <label>Copies <input type="number" id="copies" inputmode="numeric" min="1" max="200" step="1"></label>
+          <label class="check full"><input type="checkbox" id="number"> Number cartons (CARTON 1 / 5…)</label>
+        </div>
+
+        <div class="size-info" id="size-info"></div>
+      </section>
+
+      <div class="form-actions">
+        <button class="btn ghost" id="reset" type="button">Clear form</button>
+        <button class="btn" id="to-preview" type="button">Preview &amp; print</button>
+      </div>
+    </div>
+
+    <!-- ================= PREVIEW ================= -->
+    <div class="preview-col">
+      <div class="preview-head">
+        <h2>Preview</h2>
+        <button class="btn small" id="print" type="button">Print</button>
+      </div>
+      <div class="preview-wrap" id="wrap"><div id="preview"></div></div>
+      <div class="note" id="note"></div>
+    </div>
+  </div>
+</div>
+
+<div id="print-area"></div>
+
+<script>
+  const KEY = 'sm_data';
+  const $ = s => document.querySelector(s);
+
+  // preset sizes in mm (portrait)
+  const SIZES = {
+    l100x150: [100, 150], l100x100: [100, 100], l100x75: [100, 75], l100x50: [100, 50], l76x51: [76, 51],
+    a3: [297, 420], a4: [210, 297], a5: [148, 210], a6: [105, 148], a7: [74, 105],
+    b4: [250, 353], b5: [176, 250], b6: [125, 176],
+    letter: [215.9, 279.4], legal: [215.9, 355.6], half: [139.7, 215.9]
+  };
+  const UNIT_MM = { mm: 1, cm: 10, in: 25.4 };
+  const MIN_MM = 20, MAX_MM = 1000;
+
+  const defaults = () => ({
+    ref: '',
+    shipper:   { name: '', phone: '', address: '' },
+    consignee: { name: '', phone: '', address: '' },
+    showTable: true, weight: '', dimension: '', pieces: '',
+    from: '', to: '',
+    size: 'l100x150', orient: 'portrait', cw: '100', ch: '150', cunit: 'mm',
+    copies: 1, number: false
+  });
+
+  // ---------- state ----------
+  let state = defaults();
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (saved) state = Object.assign(defaults(), saved);
+  } catch (e) {}
+  if (state.size !== 'custom' && !SIZES[state.size]) state.size = 'l100x150';
+  const persist = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+
+  // ---------- helpers ----------
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const filled = v => String(v ?? '').trim() !== '';
+  const copies = () => Math.max(1, Math.min(200, parseInt(state.copies, 10) || 1));
+  const clampMM = v => Math.min(MAX_MM, Math.max(MIN_MM, v));
+  const r1 = n => Math.round(n * 10) / 10;
+
+  // final page size in mm
+  function dims() {
+    let w, h;
+    if (state.size === 'custom') {
+      const k = UNIT_MM[state.cunit] || 1;
+      w = clampMM((parseFloat(state.cw) || 100) * k);
+      h = clampMM((parseFloat(state.ch) || 150) * k);
+    } else {
+      [w, h] = SIZES[state.size];
+      if (state.orient === 'landscape') [w, h] = [h, w];
+    }
+    return { w: r1(w), h: r1(h) };
+  }
+
+  function labelHTML(i, total, withPh) {
+    const d = dims();
+    const pad = r1(Math.min(d.w, d.h) * 0.05);
+    const ph = (v, t) => filled(v) ? esc(v) : (withPh ? `<span class="ph">${t}</span>` : '');
+
+    const party = (title, p, hint) => {
+      const nameLine = [p.name.trim(), p.phone.trim()].filter(Boolean).map(esc).join(' ');
+      return `
+        <div class="l-sec">
+          <h4>${title}:</h4>
+          <p>${nameLine || (withPh ? `<span class="ph">${hint}</span>` : '')}</p>
+          <p>${ph(p.address, 'Address')}</p>
+        </div>`;
+    };
+
+    const routeParts = [];
+    if (filled(state.from)) routeParts.push('FROM ' + esc(state.from.trim()));
+    if (filled(state.to))   routeParts.push('TO ' + esc(state.to.trim()));
+    const route = routeParts.length ? routeParts.join(' ') : (withPh ? '<span class="ph">FROM … TO …</span>' : '');
+
+    const cell = v => `<div class="v">${esc(v)}</div>`;
+
+    return `
+      <div class="label" style="--w:${d.w};--h:${d.h};--pad:${pad}">
+        ${filled(state.ref) || withPh ? `<div class="l-ref">${ph(state.ref, 'SHIPPING MARK / REFERENCE')}</div>` : ''}
+        ${state.number && total > 1 ? `<div class="l-carton">CARTON ${i} / ${total}</div>` : ''}
+        ${party('Shipper', state.shipper, 'Shipper name')}
+        ${party('Consignee', state.consignee, 'Consignee name')}
+        ${state.showTable ? `
+        <div class="l-grid">
+          <div class="h">Weight</div><div class="h">Dimension</div><div class="h">Pieces</div>
+          ${cell(state.weight)}${cell(state.dimension)}${cell(state.pieces)}
+        </div>` : ''}
+        ${route ? `<div class="l-foot">${route}</div>` : ''}
+      </div>`;
+  }
+
+  // ---------- auto-fit: find the biggest font size where nothing overflows ----------
+  function overflows(el) {
+    return el.scrollHeight > el.clientHeight + 1 || el.scrollWidth > el.clientWidth + 1;
+  }
+  function fitLabel(el) {
+    const d = dims();
+    const maxFs = Math.max(1.5, Math.min(d.w * 0.056, d.h * 0.04));
+    const minFs = 0.6;
+    el.style.setProperty('--fs', maxFs);
+    if (!overflows(el)) return;
+    let lo = minFs, hi = maxFs;
+    for (let i = 0; i < 16; i++) {
+      const mid = (lo + hi) / 2;
+      el.style.setProperty('--fs', mid);
+      if (overflows(el)) hi = mid; else lo = mid;
+    }
+    el.style.setProperty('--fs', lo);
+  }
+
+  // ---------- render ----------
+  function render() {
+    const total = copies();
+    const d = dims();
+
+    $('#preview').innerHTML = labelHTML(1, total, true);
+    fitLabel($('#preview .label'));
+    scalePreview();
+
+    $('#note').textContent = total > 1 ? `Showing label 1 of ${total}` : '';
+    $('#print').textContent = total > 1 ? `Print ${total} labels` : 'Print';
+    $('#table-fields').style.display = state.showTable ? '' : 'none';
+    $('#custom-fields').style.display = state.size === 'custom' ? '' : 'none';
+    $('#orient-wrap').style.display = state.size === 'custom' ? 'none' : '';
+    $('#size-info').innerHTML = `Print size: <b>${d.w} × ${d.h} mm</b> (${r1(d.w / 25.4)} × ${r1(d.h / 25.4)} in)` +
+      (state.size === 'custom' ? ` &middot; allowed ${MIN_MM}–${MAX_MM} mm` : '');
+    $('#page-style').textContent = `@page { size: ${d.w}mm ${d.h}mm; margin: 0; }`;
+  }
+
+  function scalePreview() {
+    const wrap = $('#wrap'), lab = $('#preview .label');
+    if (!lab || !wrap.clientWidth) return;
+    const s = wrap.clientWidth / lab.offsetWidth;
+    lab.style.transform = `scale(${s})`;
+    wrap.style.height = lab.offsetHeight * s + 'px';
+  }
+  window.addEventListener('resize', scalePreview);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+
+  // build + fit every copy right before printing
+  window.addEventListener('beforeprint', () => {
+    const total = copies();
+    let html = '';
+    for (let i = 1; i <= total; i++) html += labelHTML(i, total, false);
+    const area = $('#print-area');
+    area.innerHTML = html;
+    area.querySelectorAll('.label').forEach(fitLabel);
+  });
+  window.addEventListener('afterprint', () => { $('#print-area').innerHTML = ''; });
+
+  // ---------- fields ----------
+  function setPath(path, val) {
+    const parts = path.split('.');
+    let o = state;
+    while (parts.length > 1) o = o[parts.shift()];
+    o[parts[0]] = val;
+  }
+  function getPath(path) { return path.split('.').reduce((o, k) => o[k], state); }
+
+  document.querySelectorAll('[data-bind]').forEach(el => {
+    el.value = getPath(el.dataset.bind);
+    el.addEventListener('input', () => { setPath(el.dataset.bind, el.value); persist(); render(); });
+  });
+
+  const TEXT = [['#ref', 'ref'], ['#weight', 'weight'], ['#dimension', 'dimension'], ['#pieces', 'pieces'],
+                ['#from', 'from'], ['#to', 'to'], ['#size', 'size'], ['#orient', 'orient'],
+                ['#cw', 'cw'], ['#ch', 'ch'], ['#cunit', 'cunit'], ['#copies', 'copies']];
+  TEXT.forEach(([sel, key]) => {
+    const el = $(sel);
+    el.value = state[key];
+    el.addEventListener('input', () => { state[key] = el.value; persist(); render(); });
+  });
+  [['#showTable', 'showTable'], ['#number', 'number']].forEach(([sel, key]) => {
+    const el = $(sel);
+    el.checked = !!state[key];
+    el.addEventListener('change', () => { state[key] = el.checked; persist(); render(); });
+  });
+
+  // ---------- tabs, print, reset ----------
+  function showTab(preview) {
+    document.body.classList.toggle('show-preview', preview);
+    $('#tab-edit').classList.toggle('active', !preview);
+    $('#tab-prev').classList.toggle('active', preview);
+    window.scrollTo(0, 0);
+    scalePreview();
+  }
+  $('#tab-edit').addEventListener('click', () => showTab(false));
+  $('#tab-prev').addEventListener('click', () => showTab(true));
+  $('#to-preview').addEventListener('click', () => showTab(true));
+  $('#print').addEventListener('click', () => window.print());
+
+  $('#reset').addEventListener('click', () => {
+    if (!confirm('Clear all fields?')) return;
+    state = defaults();
+    document.querySelectorAll('[data-bind]').forEach(el => el.value = getPath(el.dataset.bind));
+    TEXT.forEach(([sel, key]) => $(sel).value = state[key]);
+    $('#showTable').checked = state.showTable;
+    $('#number').checked = state.number;
+    persist(); render();
+  });
+
+  render();
+  persist();
+</script>
+</body>
+</html>
